@@ -64,8 +64,7 @@ const Dashboard: React.FC = () => {
       try {
         const { data } = await api.get<Food[]>('foods', {
           params: {
-            category_like:
-              selectedCategory !== undefined ? selectedCategory : undefined,
+            category_like: selectedCategory,
             name_like: searchValue,
           },
         });
