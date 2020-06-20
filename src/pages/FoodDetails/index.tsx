@@ -55,7 +55,9 @@ interface Food {
   name: string;
   description: string;
   price: number;
+  category: number;
   image_url: string;
+  thumbnail_url: string;
   formattedPrice: string;
   extras: Extra[];
 }
@@ -78,6 +80,7 @@ const FoodDetails: React.FC = () => {
         const response = await api.get<Food>(`foods/${routeParams.id}`);
 
         const foodData = response.data;
+        foodData.formattedPrice = formatValue(foodData.price);
 
         const foodExtras = foodData.extras.map(extra => {
           return { ...extra, quantity: 0 };
@@ -86,8 +89,10 @@ const FoodDetails: React.FC = () => {
         setFood(foodData);
         setExtras(foodExtras);
 
-        const { data } = await api.get<Food[]>('favorites');
-        const isFavoriteFood = data.find(food => food.id === routeParams.id);
+        const favorite = await api.get<Food[]>('favorites');
+        const isFavoriteFood = favorite.data.find(
+          food => food.id === routeParams.id,
+        );
 
         setIsFavorite(!!isFavoriteFood);
       } catch (err) {
@@ -105,7 +110,6 @@ const FoodDetails: React.FC = () => {
         if (extra.id !== id) {
           return extra;
         }
-
         return { ...extra, quantity: extra.quantity + 1 };
       }),
     );
@@ -163,9 +167,25 @@ const FoodDetails: React.FC = () => {
 
   async function handleFinishOrder(): Promise<void> {
     // Finish the order and save on the API
-    // api.post('orders', food).then(response => {
-    //   navigation.navigate('Orders');
-    // });
+
+    const response = await api.get('orders');
+    const orders = response.data;
+
+    await api
+      .post('orders', {
+        id: orders.lenght + 1,
+        product_id: food.id,
+        name: food.name,
+        description: food.description,
+        price: Number(food.price),
+        food_quantity: foodQuantity,
+        category: food.category,
+        thumbnail_url: food.thumbnail_url,
+        extras: extras,
+      })
+      .then(response => {
+        navigation.goBack();
+      });
   }
 
   // Calculate the correct icon name
@@ -206,7 +226,7 @@ const FoodDetails: React.FC = () => {
             <FoodContent>
               <FoodTitle>{food.name}</FoodTitle>
               <FoodDescription>{food.description}</FoodDescription>
-              <FoodPricing>{formatValue(food.price)}</FoodPricing>
+              <FoodPricing>{food.formattedPrice}</FoodPricing>
             </FoodContent>
           </Food>
         </FoodsContainer>
