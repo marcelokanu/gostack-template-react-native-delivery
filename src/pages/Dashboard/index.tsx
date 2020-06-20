@@ -99,9 +99,11 @@ const Dashboard: React.FC = () => {
     loadCategories();
   }, []);
 
-  function handleSelectCategory(id: number): void {
+  function handleSelectCategory(id: number) {
     // Select / deselect category
-    setSelectedCategory(id);
+    selectedCategory !== id
+      ? setSelectedCategory(id)
+      : setSelectedCategory(undefined);
   }
 
   return (
